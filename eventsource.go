@@ -115,7 +115,7 @@ func (es *EventSource) dispatch(msg Message, err error) {
 // Functions that return "Option" can be used with New when creating an EventSource.
 type Option func(es *EventSource)
 
-// For every parsed Event we hold its parts in-memory. This includes ID, Event and Data.
+// For every parsed Message we hold its parts in-memory. This includes ID, Event and Data.
 // This structure defines size limits for these parts. If set to 0, the default size is used.
 // If MaxReadBuffer is 0, it is set to max(MaxID, MaxEvent, MaxData)+len("event: \r\n")+1.
 //
@@ -129,7 +129,7 @@ type Option func(es *EventSource)
 //   - EventSource reads data from http response body to read buffer.
 //   - Once a complete field is recognized, the field value is copied into its own temporary buffer (id, event or data).
 //   - All buffers grow as needed, but up to their max value.
-//   - Once end of message is reached, the Event structure is assembled. It contains references to temporary buffers.
+//   - Once end of message is reached, the Message structure is assembled. It contains references to temporary buffers.
 //   - The Event is dispatched to the callback.
 //   - After that the process is repeated, buffers are reused.
 type BufferParameters struct {
@@ -209,7 +209,6 @@ func (es *EventSource) retryTimeoutSleep() {
 }
 
 func (es *EventSource) processRequest() bool {
-	defer es.retryTimeoutSleep()
 	req := es.req.Clone(es.ctx)
 	if len(es.idBuf) != 0 {
 		req.Header.Set("Last-Event-Id", string(es.idBuf))
@@ -336,6 +335,7 @@ func New(options ...Option) (*EventSource, error) {
 	es.ctx, es.cancel = context.WithCancel(es.ctx)
 	go func() {
 		for es.processRequest() {
+			es.retryTimeoutSleep()
 		}
 		es.wg.Done()
 	}()
