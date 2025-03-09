@@ -11,10 +11,10 @@ I tried to make this library minimalistic and fast.
 - Library carefully manages memory. Effectively it does minor buffering and processing of the `*http.Response`. You can control max sizes of all the buffers involved. Buffers are reused within a single `*http.Response` connection. Callback is invoked with the `Message` structure which contains fields pointing at internal buffers (no extra copies are done). Callback call is performed synchronously from the internal goroutine. You're encouraged to copy the data and defer its processing if it's heavy (to avoid stalling the internal goroutine).
 - Library supports `context.Context` out of the box.
 - You can provide custom `*http.Client`.
-- You can even provide a custom prototype `*http.Request`, before doing the request, the library `Clone()`s it.
+- You can even provide a custom prototype `*http.Request`. Before doing the request, the library `Clone()`s it.
 - Default retry timeout is 1s (fixed). The library understands `retry` field of the protocol.
 - The library will set `Last-Message-Id` header on request retries if `id` field was provided.
-- The library automatically retries HTTP requests until `Close()` is called or parent request is cancelled.
+- The library automatically retries HTTP requests until `Close()` is called or parent context is cancelled.
 - Finally, just take a look at the code yourself. If we don't count a custom line parsing buffer, the library fits into a single file of ~350 LOC.
 
 # Usage
